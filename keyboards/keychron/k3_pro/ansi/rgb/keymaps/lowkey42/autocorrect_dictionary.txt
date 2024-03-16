@@ -472,6 +472,12 @@ wherre        -> where
 wierd         -> weird
 
 
+# custom
+occourence -> occurrence
+sourround -> surround
+suround -> surround
+
+
 # deutsch
 :adresse: -> addresse
 :adressen: -> addressen
