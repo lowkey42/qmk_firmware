@@ -487,4 +487,6 @@ suround -> surround
 :rythmus -> rhythmus
 :garnicht: -> gar nicht
 :stehgreif: -> stegreif
+nivou -> niveau
+nivuo -> niveau
 
