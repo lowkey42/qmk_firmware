@@ -476,11 +476,15 @@ wierd         -> weird
 occourence -> occurrence
 sourround -> surround
 suround -> surround
+:treu: -> true
+:fasle: -> false
+:gti: -> git
+:privaet: -> private
 
 
 # deutsch
-:adresse: -> addresse
-:adressen: -> addressen
+:addresse: -> adresse
+:addressen: -> adressen
 :autor: -> author
 :autoren: -> authoren
 :autorin: -> authorin
