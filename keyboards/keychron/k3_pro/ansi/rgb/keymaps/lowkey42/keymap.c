@@ -24,6 +24,14 @@ enum layers{
   WIN_FN
 };
 
+enum custom_keycodes {
+    MK_PARANS = SAFE_RANGE,
+    MK_BRACKETS,
+    MK_ABRC,
+    MK_BRACES,
+    MK_QUOTES
+};
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [MAC_BASE] = LAYOUT_ansi_84(
      KC_ESC,   KC_BRID,  KC_BRIU,  KC_MCTL,  KC_LPAD,  RGB_VAD,  RGB_VAI,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,  KC_VOLD,  KC_VOLU,  KC_SNAP,  KC_DEL,   RGB_MOD,
@@ -51,10 +59,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
 [WIN_FN] = LAYOUT_ansi_84(
      KC_SLEP,  KC_BRID,  KC_BRIU,  KC_TASK,  KC_MYCM,  KC_TRNS,  KC_TRNS,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,  KC_VOLD,  KC_VOLU,  AC_TOGG,  KC_TRNS,  RGB_TOG,
-     KC_TRNS,  BT_HST1,  BT_HST2,  BT_HST3,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_CALC,
-     RGB_TOG,  KC_HOME,  KC_UP,    KC_END,   KC_PGUP,  RGB_SPI,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,            G(KC_B), // G(KC_B) = broswer
-     KC_TRNS,  KC_LEFT,  KC_DOWN,  KC_RIGHT, KC_PGDN,  RGB_SPD,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_TRNS,            G(KC_T), // G(KC_T) = terminal
-     KC_TRNS,   RCTL(KC_LEFT),  KC_TRNS,  RCTL(KC_RIGHT),  KC_TRNS,  BAT_LVL,  NK_TOGG,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_TRNS,  KC_TRNS,  KC_TRNS,
+     KC_TRNS,  BT_HST1,  BT_HST2,  BT_HST3,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  MK_PARANS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_CALC,
+     RGB_TOG,  KC_HOME,  KC_UP,    KC_END,   KC_PGUP,  RGB_SPI,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  MK_BRACKETS,  MK_BRACES,  KC_TRNS,            G(KC_B), // G(KC_B) = broswer
+     KC_TRNS,  KC_LEFT,  KC_DOWN,  KC_RIGHT, KC_PGDN,  RGB_SPD,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  MK_QUOTES,          KC_TRNS,            G(KC_T), // G(KC_T) = terminal
+     KC_TRNS,   RCTL(KC_LEFT),  KC_TRNS,  RCTL(KC_RIGHT),  KC_TRNS,  BAT_LVL,  NK_TOGG,  KC_TRNS,  MK_ABRC,  KC_TRNS,  KC_TRNS,            KC_TRNS,  KC_TRNS,  KC_TRNS,
      KC_TRNS,  KC_TRNS,  KC_TRNS,                                KC_TRNS,                                KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_WBAK,  KC_TRNS,  KC_WFWD)
 };
 
@@ -81,9 +89,34 @@ const key_override_t **key_overrides = (const key_override_t *[]){
     NULL
 };
 
-// TODO: maybe FN + Arrows => ASCII Pfeil 
 // TODO: custom keycode on FN+Shift + single keycode + 1-2 digits + return => press keycode N times
 
+static void send_pair(keyrecord_t *record, const char* text) {
+	if (record->event.pressed) {
+		const uint8_t mods = get_mods();
+		//const uint8_t oneshot_mods = get_oneshot_mods();
+
+		clear_oneshot_mods();  // Temporarily disable mods.
+		unregister_mods(MOD_MASK_CSAG);
+		
+		SEND_STRING(text);
+		
+		tap_code(KC_LEFT);  // Move cursor between braces.
+		register_mods(mods);  // Restore mods.
+	}
+}
+
+bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+	switch (keycode) {
+		case MK_PARANS:   send_pair(record, "()"); break;
+		case MK_BRACKETS: send_pair(record, "[]"); break;
+		case MK_ABRC:     send_pair(record, "<>"); break;
+		case MK_BRACES:   send_pair(record, "{}"); break;
+		case MK_QUOTES:   send_pair(record, "\"\"");  break;
+		
+	}
+	return true;
+}
 
 void keyboard_post_init_user(void) {
     rgb_matrix_mode_noeeprom(RGB_MATRIX_CUSTOM_lowkey_reactive);
