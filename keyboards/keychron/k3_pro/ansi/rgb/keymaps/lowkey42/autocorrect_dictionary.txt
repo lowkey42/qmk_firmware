@@ -477,9 +477,9 @@ occourence -> occurrence
 sourround -> surround
 suround -> surround
 :treu: -> true
-:fasle: -> false
-:gti: -> git
 :privaet: -> private
+differenciated -> differentiated
+wether: -> Whether
 
 
 # deutsch
