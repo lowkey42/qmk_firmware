@@ -1,4 +1,5 @@
 RGB_MATRIX_EFFECT(lowkey_reactive)
+RGB_MATRIX_EFFECT(lowkey_reactive_alt)
 
 #ifdef RGB_MATRIX_CUSTOM_EFFECT_IMPLS
 
@@ -10,11 +11,11 @@ static uint8_t lowkey_reactive_math(int16_t dx, int16_t dy, uint8_t dist, uint16
     return 255 - effect;
 }
 
-static bool lowkey_reactive(effect_params_t* params) {
+static bool lowkey_reactive_base(effect_params_t* params, uint8_t speed, HSV base_color) {
     RGB_MATRIX_USE_LIMITS(led_min, led_max);
 
     uint8_t count = g_last_hit_tracker.count;
-    uint16_t time = scale16by8(g_rgb_timer, rgb_matrix_config.speed / 2);
+    uint16_t time = scale16by8(g_rgb_timer, speed / 2);
     
     for (uint8_t i = led_min; i < led_max; i++) {
         RGB_MATRIX_TEST_LED_FLAGS();
@@ -24,7 +25,7 @@ static bool lowkey_reactive(effect_params_t* params) {
             int16_t  dx   = g_led_config.point[i].x - g_last_hit_tracker.x[j];
             int16_t  dy   = g_led_config.point[i].y - g_last_hit_tracker.y[j];
             uint8_t  dist = sqrt16(dx * dx + dy * dy);
-            uint16_t tick = scale16by8(g_last_hit_tracker.tick[j], qadd8(rgb_matrix_config.speed, 1));
+            uint16_t tick = scale16by8(g_last_hit_tracker.tick[j], qadd8(speed, 1));
             uint8_t v = lowkey_reactive_math(dx, dy, dist, tick);
             if(v > click_effect_strength)
 	            click_effect_strength = v;
@@ -32,7 +33,7 @@ static bool lowkey_reactive(effect_params_t* params) {
         
         uint8_t t = abs8(g_led_config.point[i].y + time + scale8(sin8(g_led_config.point[i].x - scale8(time, 64)), 128));
         t = qsub8(255, qmul8(t,t));
-        HSV hsv = rgb_matrix_config.hsv;
+        HSV hsv = base_color;
         hsv.h = qsub8(hsv.h, scale8(t, 10));
         hsv.v = qadd8(scale8(qsub8(255, t), 80), 255-80);
                 
@@ -46,6 +47,26 @@ static bool lowkey_reactive(effect_params_t* params) {
         rgb_matrix_set_color(i, rgb.r, rgb.g, rgb.b);
     }
     return rgb_matrix_check_finished_leds(led_max);
+}
+
+static bool lowkey_reactive(effect_params_t* params) {
+    uint8_t speed = 50;
+    HSV base_color;
+    base_color.h = 5;
+    base_color.s = 255;
+    base_color.v = 255;
+    
+    return lowkey_reactive_base(params, speed, base_color);
+}
+
+static bool lowkey_reactive_alt(effect_params_t* params) {
+    uint8_t speed = 100;
+    HSV base_color;
+    base_color.h = 124;
+    base_color.s = 255;
+    base_color.v = 255;
+    
+    return lowkey_reactive_base(params, speed, base_color);
 }
 
 #endif // RGB_MATRIX_CUSTOM_EFFECT_IMPLS

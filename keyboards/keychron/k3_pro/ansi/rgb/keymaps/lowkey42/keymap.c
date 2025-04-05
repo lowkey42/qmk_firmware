@@ -29,7 +29,45 @@ enum custom_keycodes {
     MK_BRACKETS,
     MK_ABRC,
     MK_BRACES,
-    MK_QUOTES
+    MK_QUOTES,
+    MK_WORD_SEL
+};
+
+// Tap Dance declarations
+enum {
+    TD_RALT,
+};
+
+
+
+// Tap Dance definitions
+static int dance_ralt_held = 0;
+void dance_ralt_finish(tap_dance_state_t *state, void *user_data) {
+    dance_ralt_held = 0;
+        
+    if(state->count == 1) {
+        del_oneshot_locked_mods(MOD_BIT(KC_RALT));
+        register_mods(MOD_BIT(KC_RALT));
+        dance_ralt_held = 1;
+    } else if(state->count == 2) {
+        unregister_mods(MOD_BIT(KC_RALT));
+        del_oneshot_locked_mods(MOD_BIT(KC_RALT));
+        add_oneshot_mods(MOD_BIT(KC_RALT));
+        
+    } else if(state->count == 3) {
+        del_oneshot_mods(MOD_BIT(KC_RALT));
+        register_mods(MOD_BIT(KC_RALT));
+        add_oneshot_locked_mods(MOD_BIT(KC_RALT));
+    }
+}
+void dance_ralt_reset(tap_dance_state_t *state, void *user_data) {
+    if (dance_ralt_held == 1) {
+        unregister_mods(MOD_BIT(KC_RALT));
+        dance_ralt_held = 0;
+    }
+}
+tap_dance_action_t tap_dance_actions[] = {
+    [TD_RALT] = ACTION_TAP_DANCE_FN_ADVANCED(NULL, dance_ralt_finish, dance_ralt_reset),
 };
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -52,18 +90,18 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 [WIN_BASE] = LAYOUT_ansi_84(
      KC_ESC,   KC_F1,    KC_F2,    KC_F3,    KC_F4,    KC_F5,    KC_F6,    KC_F7,    KC_F8,    KC_F9,    KC_F10,   KC_F11,   KC_F12,   KC_PSCR,  KC_DEL,   KC_INS,
      KC_GRV,   KC_1,     KC_2,     KC_3,     KC_4,     KC_5,     KC_6,     KC_7,     KC_8,     KC_9,     KC_0,     KC_MINS,  KC_EQL,   KC_BSPC,            KC_PGUP,
-     KC_TAB,   KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,     KC_Z,     KC_U,     KC_I,     KC_O,     KC_P,     KC_LBRC,  KC_RBRC,  KC_BSLS,            KC_PGDN,
-   MO(WIN_FN), KC_A,     KC_S,     KC_D,     KC_F,     KC_G,     KC_H,     KC_J,     KC_K,     KC_L,     KC_SCLN,  KC_QUOT,            KC_ENT,             KC_HOME,
-     KC_LSFT,            KC_Y,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   KC_SLSH,            KC_RSFT,  KC_UP,    KC_END,
-     KC_LCTL,  KC_LGUI,  KC_LALT,                                KC_SPC,                                 KC_RALT, MO(WIN_FN),KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT),
+     KC_TAB,   KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,     KC_Y,     KC_U,     KC_I,     KC_O,     KC_P,     KC_LBRC,  KC_RBRC,  KC_BSLS,            KC_PGDN,
+    MO(WIN_FN), KC_A,     KC_S,     KC_D,     KC_F,     KC_G,     KC_H,     KC_J,     KC_K,     KC_L,     KC_SCLN,  KC_QUOT,            KC_ENT,             KC_HOME,
+     KC_LSFT,            KC_Z,     KC_X,     KC_C,     KC_V,     KC_B,     KC_N,     KC_M,     KC_COMM,  KC_DOT,   KC_SLSH,            KC_RSFT,  KC_UP,    KC_END,
+     KC_LCTL,  KC_LGUI,  KC_LALT,                 KC_SPC,               TD(TD_RALT), MO(WIN_FN), KC_RCTL,  KC_LEFT,  KC_DOWN,  KC_RGHT),
 
 [WIN_FN] = LAYOUT_ansi_84(
-     KC_SLEP,  KC_BRID,  KC_BRIU,  KC_TASK,  KC_MYCM,  KC_TRNS,  KC_TRNS,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,  KC_VOLD,  KC_VOLU,  AC_TOGG,  KC_TRNS,  RGB_TOG,
-     KC_TRNS,  BT_HST1,  BT_HST2,  BT_HST3,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  MK_PARANS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,            KC_CALC,
-     RGB_TOG,  KC_HOME,  KC_UP,    KC_END,   KC_PGUP,  RGB_SPI,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  MK_BRACKETS,  MK_BRACES,  KC_TRNS,            G(KC_B), // G(KC_B) = broswer
-     KC_TRNS,  KC_LEFT,  KC_DOWN,  KC_RIGHT, KC_PGDN,  RGB_SPD,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  MK_QUOTES,          KC_TRNS,            G(KC_T), // G(KC_T) = terminal
-     KC_TRNS,   RCTL(KC_LEFT),  KC_TRNS,  RCTL(KC_RIGHT),  KC_TRNS,  BAT_LVL,  NK_TOGG,  KC_TRNS,  MK_ABRC,  KC_TRNS,  KC_TRNS,            KC_TRNS,  KC_TRNS,  KC_TRNS,
-     KC_TRNS,  KC_TRNS,  KC_TRNS,                                KC_TRNS,                                KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_WBAK,  KC_TRNS,  KC_WFWD)
+     KC_SLEP,  KC_BRID,       KC_BRIU,  KC_TASK,        KC_MYCM,  KC_TRNS,  KC_TRNS,  KC_MPRV,  KC_MPLY,  KC_MNXT,  KC_MUTE,  KC_VOLD,  KC_VOLU,  AC_TOGG,  KC_TRNS,  RGB_TOG,
+     KC_TRNS,  BT_HST1,       BT_HST2,  BT_HST3,        KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  MK_PARANS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,          KC_CALC,
+     RGB_TOG,  RCTL(KC_LEFT), KC_UP,    RCTL(KC_RIGHT), KC_PGUP,  RGB_SPI,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,  MK_BRACKETS,  MK_BRACES,  KC_TRNS,      G(KC_B), // G(KC_B) = broswer
+     KC_TRNS,  KC_LEFT,       KC_DOWN,  KC_RIGHT,       KC_PGDN,  RGB_SPD,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,    KC_TRNS,  MK_QUOTES,          KC_TRNS,            G(KC_T), // G(KC_T) = terminal
+     KC_TRNS,  KC_HOME,   MK_WORD_SEL,  KC_END,         KC_TRNS,  BAT_LVL,  NK_TOGG,  KC_TRNS,  MK_ABRC,  KC_TRNS,    KC_TRNS,  KC_TRNS,    KC_TRNS,  KC_TRNS,
+     KC_TRNS,  KC_TRNS,       KC_TRNS,                           KC_TRNS,                                  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_WBAK,  KC_TRNS,  KC_WFWD)
 };
 
 
@@ -106,6 +144,8 @@ static void send_pair(keyrecord_t *record, const char* text) {
 	}
 }
 
+static int wordSelActive = 0;  
+
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 	switch (keycode) {
 		case MK_PARANS:   send_pair(record, "()"); break;
@@ -113,9 +153,42 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 		case MK_ABRC:     send_pair(record, "<>"); break;
 		case MK_BRACES:   send_pair(record, "{}"); break;
 		case MK_QUOTES:   send_pair(record, "\"\"");  break;
-		
+		case MK_WORD_SEL:
+			tap_code16(RCTL(KC_LEFT));
+		    
+			clear_oneshot_mods();
+			register_mods(MOD_BIT(KC_LSFT));
+		    
+			tap_code16(RCTL(KC_RIGHT));
+		    
+			wordSelActive = 1;
+			break;
 	}
 	return true;
+}
+
+void oneshot_mods_changed_user(uint8_t mods) {
+    static int was_on = 0;
+    
+	if(mods & MOD_MASK_ALT) {
+		rgb_matrix_mode_noeeprom(RGB_MATRIX_CUSTOM_lowkey_reactive_alt);
+		was_on = 1;
+	} else if(was_on==1) {
+		rgb_matrix_mode_noeeprom(RGB_MATRIX_CUSTOM_lowkey_reactive);
+		was_on = 0;
+	}
+}
+
+void oneshot_locked_mods_changed_user(uint8_t mods) {
+    static int was_on = 0;
+    
+	if(mods & MOD_MASK_ALT) {
+		rgb_matrix_mode_noeeprom(RGB_MATRIX_CUSTOM_lowkey_reactive_alt);
+		was_on = 1;
+	} else if(was_on==1) {
+		rgb_matrix_mode_noeeprom(RGB_MATRIX_CUSTOM_lowkey_reactive);
+		was_on = 0;
+	}
 }
 
 void keyboard_post_init_user(void) {
